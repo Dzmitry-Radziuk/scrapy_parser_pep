@@ -41,7 +41,7 @@ class PepParsePipeline:
         total = sum(self.status_counter.values())
         timestamp = datetime.now().strftime(DATETIME_FORMAT)
         filename = self.output_dir / (
-            PREFIX_STATUS_SUMMARY + timestamp + FORMAT_CSV
+            PREFIX_STATUS_SUMMARY + timestamp + '.' + FORMAT_CSV
         )
 
         with open(
