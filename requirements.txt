@@ -13,6 +13,7 @@ idna==3.3
 importlib-metadata==4.2.0
 incremental==21.3.0
 iniconfig==1.1.1
+isort==6.0.1
 itemadapter==0.4.0
 itemloaders==1.0.4
 jmespath==1.0.0

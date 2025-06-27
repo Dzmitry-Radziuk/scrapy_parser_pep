@@ -1,31 +1,40 @@
+from urllib.parse import urlparse
+
 import scrapy
 
+from pep_parse.constants import EMPTY_STRING, ONE, TWO, ZERO
 from pep_parse.items import PepParseItem
 
 
 class PepSpider(scrapy.Spider):
+    """Собирает номер, название и статус PEP-документов."""
+
     name = 'pep'
-    allowed_domains = ['peps.python.org']
     start_urls = ['https://peps.python.org/']
+    allowed_domains = [urlparse(url).netloc for url in start_urls]
 
     def parse(self, response):
-        # Бежим по таблице PEP Zero (основной список)
-        for row in response.css('table.pep-zero-table tbody tr'):
-            link = row.css('td:nth-child(3) a::attr(href)').get()
-            if link:
-                yield response.follow(link, callback=self.parse_pep)
+        links = response.css(
+            'table.pep-zero-table td:nth-child(3) a::attr(href)').getall()
+        for link in links:
+            yield response.follow(link, callback=self.parse_pep)
 
     def parse_pep(self, response):
-        # Извлекаем заголовок, например: "PEP 8 – Style Guide for Python Code"
         title = response.css('h1.page-title::text').get()
-        number = ''
+        number = EMPTY_STRING
+        name = EMPTY_STRING
         if title:
-            number = title.split()[1].strip()
+            parts = title.split(' – ', maxsplit=ONE)
+            if len(parts) == TWO:
+                number = parts[ZERO].replace('PEP', EMPTY_STRING).strip()
+                name = parts[ONE].strip()
+            else:
+                name = title.strip()
 
         status = response.css('dt:contains("Status") + dd abbr::text').get()
 
         yield PepParseItem({
             'number': number,
-            'name': title,
+            'name': name,
             'status': status or 'Unknown'
         })

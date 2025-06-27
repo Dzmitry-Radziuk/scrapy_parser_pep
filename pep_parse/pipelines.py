@@ -3,10 +3,12 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-from constants import (DATETIME_FORMAT, ENCODING_FORMAT, FEEDS_NAME,
-                       FINAL_LINE, FIRST_LINES, FORMAT_CSV, MODE_WRITE,
-                       NEW_LINE, ONE, PREFIX_STATUS_SUMMARY, RESULTS_DIR, ZERO)
 from itemadapter import ItemAdapter
+
+from pep_parse.constants import (DATETIME_FORMAT, ENCODING_FORMAT, FEEDS_NAME,
+                                 FINAL_LINE, FIRST_LINES, FORMAT_CSV,
+                                 MODE_WRITE, NEW_LINE, ONE,
+                                 PREFIX_STATUS_SUMMARY, RESULTS_DIR, ZERO)
 
 
 class PepParsePipeline:
@@ -41,7 +43,7 @@ class PepParsePipeline:
         total = sum(self.status_counter.values())
         timestamp = datetime.now().strftime(DATETIME_FORMAT)
         filename = self.output_dir / (
-            PREFIX_STATUS_SUMMARY + timestamp + '.' + FORMAT_CSV
+            f'{PREFIX_STATUS_SUMMARY}{timestamp}.{FORMAT_CSV}'
         )
 
         with open(
@@ -51,7 +53,9 @@ class PepParsePipeline:
             newline=NEW_LINE
         ) as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(FIRST_LINES)
-            for status, count in self.status_counter.items():
-                writer.writerow([status, count])
-            writer.writerow([FINAL_LINE, total])
+            rows = [
+                FIRST_LINES,
+                *self.status_counter.items(),
+                [FINAL_LINE, total]
+            ]
+            writer.writerows(rows)
